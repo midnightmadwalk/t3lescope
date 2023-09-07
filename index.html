@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token List and Transaction List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #addressForm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #address {
+            flex-grow: 1;
+            padding: 5px;
+        }
+
+        #submitBtn {
+            padding: 5px 10px;
+        }
+
+        #loadingIcon {
+            display: none;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Token List and Transaction List</h1>
+        <form id="addressForm">
+            <label for="address">Enter Address:</label>
+            <input type="text" id="address" name="address">
+            <button type="submit" id="submitBtn">Submit</button>
+        </form>
+        <div id="loadingIcon">Loading...</div>
+        <h2>Token List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Symbol</th>
+                    <th>Balance</th>
+                    <th>Contract Address</th>
+                </tr>
+            </thead>
+            <tbody id="tokenList"></tbody>
+        </table>
+        <h2>Transaction List</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Transaction</th>
+                    <th>Hash</th>
+                    <th>Otter</th>
+                    <th>PulseScan</th>
+                </tr>
+            </thead>
+            <tbody id="transactionList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const otterUrl = "https://otter.pulsechain.com/tx/";
+        const pulseScanUrl = "https://scan.pulsechain.com/tx";
+
+        const addressForm = document.getElementById("addressForm");
+        const loadingIcon = document.getElementById("loadingIcon");
+        const tokenList = document.getElementById("tokenList");
+        const transactionList = document.getElementById("transactionList");
+
+        addressForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const address = document.getElementById("address").value;
+            const transactionApiUrl = `https://scan.pulsechain.com/api?module=account&action=txlist&address=${address}&sort=asc`;
+            const tokenApiUrl = `https://scan.pulsechain.com/api?module=account&action=tokenlist&address=${address}&sort=asc`;
+
+            // Show loading icon
+            loadingIcon.style.display = "block";
+
+            // Clear previous results
+            tokenList.innerHTML = "";
+            transactionList.innerHTML = "";
+
+            // Fetch token data
+            fetch(tokenApiUrl)
+                .then(response => response.json())
+                .then(tokenData => {
+                    // Hide loading icon
+                    loadingIcon.style.display = "none";
+
+                    if (tokenData.result && tokenData.result.length > 0) {
+                        tokenData.result.forEach((token, index) => {
+                            const row = document.createElement("tr");
+                            const nameCell = document.createElement("td");
+                            const symbolCell = document.createElement("td");
+                            const balanceCell = document.createElement("td");
+                            const contractAddressCell = document.createElement("td");
+
+                            const nameText = document.createTextNode(token.name);
+                            const symbolText = document.createTextNode(token.symbol);
+                            const balanceWei = parseFloat(token.balance);
+                            const balanceEth = (balanceWei / 1e18).toFixed(6); // Convert Wei to Ether with 6 decimal places
+                            const balanceText = document.createTextNode(balanceEth); // Display balance in Ether format
+                            const contractAddressText = document.createTextNode(token.contractAddress);
+
+                            nameCell.appendChild(nameText);
+                            symbolCell.appendChild(symbolText);
+                            balanceCell.appendChild(balanceText);
+                            contractAddressCell.appendChild(contractAddressText);
+
+                            row.appendChild(nameCell);
+                            row.appendChild(symbolCell);
+                            row.appendChild(balanceCell);
+                            row.appendChild(contractAddressCell);
+
+                            tokenList.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement("tr");
+                        const messageCell = document.createElement("td");
+                        messageCell.colSpan = 4;
+                        messageCell.textContent = "No tokens found for the given address.";
+                        row.appendChild(messageCell);
+                        tokenList.appendChild(row);
+                    }
+                })
+                .catch(error => {
+                    // Handle errors here
+                    console.error("Error fetching token data:", error);
+                });
+
+            // Fetch transaction data
+            fetch(transactionApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result && data.result.length > 0) {
+                        data.result.forEach((transaction, index) => {
+                            const row = document.createElement("tr");
+                            const transactionText = document.createTextNode(`${index + 1}`);
+                            const hashText = document.createTextNode(transaction.hash);
+                            const otterButton = document.createElement("button");
+                            otterButton.textContent = "Otter";
+                            otterButton.addEventListener("click", function () {
+                                window.open(`${otterUrl}${transaction.hash}`, "_blank");
+                            });
+                            const pulseScanButton = document.createElement("button");
+                            pulseScanButton.textContent = "PulseScan";
+                            pulseScanButton.addEventListener("click", function () {
+                                window.open(`${pulseScanUrl}/${transaction.hash}`, "_blank");
+                            });
+
+                            const transactionCell = document.createElement("td");
+                            transactionCell.appendChild(transactionText);
+                            const hashCell = document.createElement("td");
+                            hashCell.appendChild(hashText);
+                            const otterCell = document.createElement("td");
+                            otterCell.appendChild(otterButton);
+                            const pulseScanCell = document.createElement("td");
+                            pulseScanCell.appendChild(pulseScanButton);
+
+                            row.appendChild(transactionCell);
+                            row.appendChild(hashCell);
+                            row.appendChild(otterCell);
+                            row.appendChild(pulseScanCell);
+
+                            transactionList.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement("tr");
+                        const messageCell = document.createElement("td");
+                        messageCell.colSpan = 4;
+                        messageCell.textContent = "No transactions found for the given address.";
+                        row.appendChild(messageCell);
+                        transactionList.appendChild(row);
+                    }
+                })
+                .catch(error => {
+                    // Hide loading icon on error
+                    loadingIcon.style.display = "none";
+                    console.error("Error fetching transaction data:", error);
+                });
+        });
+    </script>
+</body>
+</html>
