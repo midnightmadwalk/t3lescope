@@ -103,8 +103,8 @@
         addressForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const address = document.getElementById("address").value;
-            const transactionApiUrl = `https://scan.pulsechain.com/api?module=account&action=txlist&address=${address}&sort=asc`;
-            const tokenApiUrl = `https://scan.pulsechain.com/api?module=account&action=tokenlist&address=${address}&sort=asc`;
+            const transactionApiUrl = `https://api.scan.pulsechain.com/api?module=account&action=txlist&address=${address}&sort=asc`;
+            const tokenApiUrl = `https://api.scan.pulsechain.com/api?module=account&action=tokenlist&address=${address}&sort=asc`;
 
             // Show loading icon
             loadingIcon.style.display = "block";
