@@ -1,0 +1,61 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+}
+
+#container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#addressForm {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#address {
+    flex-grow: 1;
+    padding: 5px;
+}
+
+#submitBtn {
+    padding: 5px 10px;
+}
+
+#loadingIcon {
+    display: none;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+#priceForm {
+    display: flex;
+    justify-content: flex-left; /* Align to the right */
+    margin-bottom: 20px; /* Add margin for spacing */
+}
+
+#priceForm label {
+    margin-right: 10px; /* Add margin between labels for spacing */
+}
+
+/* Add any additional styling here */
