@@ -8,30 +8,37 @@
 </head>
 <body>
     <div id="container">
+        <div id="nightModeToggle" style="cursor: pointer; margin-right: 10px;">
+            🌙 <!-- You can use a moon or any other night mode icon here -->
+        </div>
         <h1>Token List and Transaction List</h1>
+        <p style="font-size: 12px; text-align: center; color: gray; margin-bottom: 20px;">(May require page refresh. Refresh after each use.)</p>
         <form id="addressForm">
             <label for="address">Address:</label>
             <input type="text" id="address" name="address">
-            <input type="radio" id="excludeLP" name="type" value="excludeLP">
+            <input type="radio" id="excludeLP" name="type" value="excludeLP" checked>
             <label for="excludeLP">Exclude LP</label>
             <input type="radio" id="lpOnly" name="type" value="lpOnly">
             <label for="lpOnly">LP Only</label>
-            <input type="radio" id="tokensLP" name="type" value="tokensLP" checked>
+            <input type="radio" id="tokensLP" name="type" value="tokensLP">
             <label for="tokensLP">Tokens & LP</label>
             <button type="submit" id="submitBtn">Submit</button>
         </form>
-        <div id="loadingIcon">Loading...</div>
-        <h2 style="display: flex; align-items: center;">Token List
+        <div id="loadingIcon">Loading... </div>
+        <h3 style="display: flex; align-items: center;">Token List
             <span id="copyAllIcon" style="cursor: pointer; color: blue; margin-left: 10px;">&#128203;</span>
             <p id="copyAllMessage" style="font-size: 12px; margin-left: 5px; cursor: pointer; color: gray;">(Click to copy all token balances in a spreadsheet-friendly format)</p>
-        </h2>
-        <form id="priceForm">
+        </h3>
+        <!-- <form id="priceForm">
             <label for="pricedIn">Priced in:</label>
             <input type="radio" id="wpls" name="pricedIn" value="wpls">
             <label for="wpls">WPLS</label>
             <input type="radio" id="usd" name="pricedIn" value="usd" checked>
             <label for="usd">USD</label>
-        </form>
+        </form> -->
+        <p id="statusMessage" style="font-size: 14px; color: gray; margin-top: 10px;"></p>
+        <h3 id="cumulativeDollarAmount">Wallet Token Value: $0.00</h3>
+
         <table>
             <thead>
                 <tr>
@@ -61,6 +68,5 @@
 <script src="script.js"></script>
 </body>
 </html>
-    </script>
-</body>
-</html>
+
+
