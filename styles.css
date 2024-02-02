@@ -7,7 +7,7 @@ h1 {
 }
 
 #container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -79,6 +79,10 @@ th {
 .night-mode th {
     background-color: #333333;
     color: #ffffff;
+}
+
+tr.strike-through td {
+    text-decoration: line-through;
 }
 
 
