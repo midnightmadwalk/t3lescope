@@ -7,9 +7,21 @@ h1 {
 }
 
 #container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
+}
+
+#header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#nightModeToggle {
+    margin-right: 10px;
+    cursor: pointer;
 }
 
 #addressForm {
@@ -26,6 +38,7 @@ h1 {
 
 #submitBtn {
     padding: 5px 10px;
+    margin-left: 5px;
 }
 
 #loadingIcon {
@@ -50,12 +63,28 @@ th {
 
 #priceForm {
     display: flex;
-    justify-content: flex-left; /* Align to the right */
-    margin-bottom: 20px; /* Add margin for spacing */
+    justify-content: flex-left;
+    margin-bottom: 20px;
 }
 
 #priceForm label {
-    margin-right: 10px; /* Add margin between labels for spacing */
+    margin-right: 10px;
 }
 
-/* Add any additional styling here */
+.night-mode {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.night-mode th {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+tr.strike-through td {
+    text-decoration: line-through;
+}
+
+
+
+
