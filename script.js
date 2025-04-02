@@ -1,4 +1,5 @@
-const otterUrl = "https://otter.pulsechain.com/tx/";
+<script>
+    const otterUrl = "https://otter.pulsechain.com/tx/";
     const pulseScanUrl = "https://scan.pulsechain.com/tx";
 
     const addressForm = document.getElementById("addressForm");
@@ -11,28 +12,34 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
         const address = document.getElementById("address").value;
         const transactionApiUrl = `https://api.scan.pulsechain.com/api?module=account&action=txlist&address=${address}&sort=asc`;
         const tokenApiUrl = `https://api.scan.pulsechain.com/api?module=account&action=tokenlist&address=${address}&sort=asc`;
-        
-        // Get the selected type
+
         const selectedType = document.querySelector('input[name="type"]:checked').value;
-
-        // Show loading icon
         loadingIcon.style.display = "block";
-
-        // Clear previous results
         tokenList.innerHTML = "";
         transactionList.innerHTML = "";
 
+        // ------------------ Fetch Real Token Balances --------------------
+        async function getRealTokenBalance(walletAddress, contractAddress) {
+            try {
+                const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
+                const abi = ["function balanceOf(address) view returns (uint256)"];
+                const contract = new ethers.Contract(contractAddress, abi, provider);
+                const balance = await contract.balanceOf(walletAddress);
+                return balance;
+            } catch (err) {
+                console.error(`Error fetching balance for ${contractAddress}:`, err);
+                return ethers.BigNumber.from(0);
+            }
+        }
 
-        // Fetch token data
-        fetch(tokenApiUrl)
-            .then(response => response.json())
-            .then(tokenData => {
-                // Hide loading icon
+        (async () => {
+            try {
+                const response = await fetch(tokenApiUrl);
+                const tokenData = await response.json();
                 loadingIcon.style.display = "none";
 
                 if (tokenData.result && tokenData.result.length > 0) {
-                    tokenData.result.forEach((token, index) => {
-                        // Additional logic to filter results based on the selected type
+                    for (const [index, token] of tokenData.result.entries()) {
                         if ((selectedType === "lpOnly" && token.name === "PulseX LP") ||
                             (selectedType === "excludeLP" && token.name !== "PulseX LP") ||
                             selectedType === "tokensLP") {
@@ -44,12 +51,14 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
                             const contractAddressCell = document.createElement("td");
                             contractAddressCell.style.display = "flex";
                             const copyIcon = document.createElement("span");
+
                             copyIcon.innerHTML = "&#128203;";
                             copyIcon.style.cursor = "pointer";
                             copyIcon.style.color = "blue";
                             copyIcon.style.marginRight = "5px";
                             copyIcon.style.marginLeft = "10px";
                             copyIcon.classList.add("exclude-copy");
+
                             copyIcon.addEventListener("click", () => {
                                 copyToClipboard(token.contractAddress);
                                 copyIcon.style.color = "green";
@@ -57,16 +66,17 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
                                     copyIcon.style.color = "blue";
                                 }, 1000);
                             });
+
                             const nameText = document.createTextNode(token.name);
                             const symbolText = document.createTextNode(token.symbol);
-                            const balanceWei = parseFloat(token.balance);
+
+                            const balanceBN = await getRealTokenBalance(address, token.contractAddress);
                             const tokenDecimal = parseInt(token.decimals);
-                            const adjustedBalance = adjustBalance(balanceWei, tokenDecimal);
+                            const adjustedBalance = ethers.utils.formatUnits(balanceBN, tokenDecimal);
                             const balanceText = document.createTextNode(adjustedBalance);
                             const contractAddressText = document.createTextNode(`${token.contractAddress.slice(0, 5)}....${token.contractAddress.slice(-5)}`);
                             contractAddressCell.setAttribute("data-full-contract-address", token.contractAddress);
 
-                            // Create cells for the new "Price" and "Total" columns
                             const priceCell = document.createElement("td");
                             const totalCell = document.createElement("td");
 
@@ -85,7 +95,7 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
 
                             tokenList.appendChild(row);
                         }
-                    });
+                    }
                 } else {
                     const row = document.createElement("tr");
                     const messageCell = document.createElement("td");
@@ -94,32 +104,11 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
                     row.appendChild(messageCell);
                     tokenList.appendChild(row);
                 }
-            })
-            .catch(error => {
-                // Handle errors here
+            } catch (error) {
+                loadingIcon.style.display = "none";
                 console.error("Error fetching token data:", error);
-            });
-
-        // Function to adjust balance based on decimals
-        function adjustBalance(balance, decimals) {
-            if (decimals === 18 || decimals === 0 || decimals === "") {
-                return (balance / 1e18).toFixed(10);
-            } else {
-                const power = Math.pow(10, decimals);
-                return (balance / power).toString();
             }
-        }
-
-
-
-        function copyToClipboard(text) {
-            const dummy = document.createElement("textarea");
-            document.body.appendChild(dummy);
-            dummy.value = text;
-            dummy.select();
-            document.execCommand("copy");
-            document.body.removeChild(dummy);
-        }
+        })();
 
         fetch(transactionApiUrl)
             .then(response => response.json())
@@ -171,13 +160,22 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
             });
     });
 
+    function copyToClipboard(text) {
+        const dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+    }
+
     const copyAllIcon = document.getElementById("copyAllIcon");
     copyAllIcon.addEventListener("click", function () {
         const tokenTable = document.getElementById("tokenList");
         const dummy = document.createElement("textarea");
         document.body.appendChild(dummy);
 
-        tokenTable.querySelectorAll("tr").forEach((row, index) => {
+        tokenTable.querySelectorAll("tr").forEach((row) => {
             const rowData = Array.from(row.getElementsByTagName("td")).map(cell => {
                 if (cell.classList.contains("exclude-copy")) {
                     return cell.textContent.trim();
@@ -205,3 +203,4 @@ const otterUrl = "https://otter.pulsechain.com/tx/";
     copyAllMessage.addEventListener("click", function () {
         copyAllIcon.click();
     });
+</script>
