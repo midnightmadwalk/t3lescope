@@ -17,17 +17,44 @@ addressForm.addEventListener("submit", function (e) {
     tokenList.innerHTML = "";
     transactionList.innerHTML = "";
 
-    // ------------------ Fetch Real Token Balances --------------------
-    async function getRealTokenBalance(walletAddress, contractAddress) {
+    async function getRealTokenBalance(walletAddress, contractAddress, decimals) {
+        const rpcUrl = "https://rpc.pulsechain.com";
+        const functionSelector = "0x70a08231"; // balanceOf(address)
+        const paddedAddress = walletAddress.toLowerCase().replace("0x", "").padStart(64, "0");
+        const data = functionSelector + paddedAddress;
+
+        const payload = {
+            jsonrpc: "2.0",
+            method: "eth_call",
+            params: [
+                {
+                    to: contractAddress,
+                    data: data
+                },
+                "latest"
+            ],
+            id: 1
+        };
+
         try {
-            const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
-            const abi = ["function balanceOf(address) view returns (uint256)"];
-            const contract = new ethers.Contract(contractAddress, abi, provider);
-            const balance = await contract.balanceOf(walletAddress);
-            return balance;
+            const res = await fetch(rpcUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const json = await res.json();
+            if (json.result) {
+                const raw = BigInt(json.result);
+                return (Number(raw) / Math.pow(10, decimals)).toFixed(6);
+            } else {
+                return "0";
+            }
         } catch (err) {
             console.error(`Error fetching balance for ${contractAddress}:`, err);
-            return ethers.BigNumber.from(0);
+            return "0";
         }
     }
 
@@ -49,15 +76,14 @@ addressForm.addEventListener("submit", function (e) {
                         const balanceCell = document.createElement("td");
                         const contractAddressCell = document.createElement("td");
                         contractAddressCell.style.display = "flex";
-                        const copyIcon = document.createElement("span");
 
+                        const copyIcon = document.createElement("span");
                         copyIcon.innerHTML = "&#128203;";
                         copyIcon.style.cursor = "pointer";
                         copyIcon.style.color = "blue";
                         copyIcon.style.marginRight = "5px";
                         copyIcon.style.marginLeft = "10px";
                         copyIcon.classList.add("exclude-copy");
-
                         copyIcon.addEventListener("click", () => {
                             copyToClipboard(token.contractAddress);
                             copyIcon.style.color = "green";
@@ -68,11 +94,9 @@ addressForm.addEventListener("submit", function (e) {
 
                         const nameText = document.createTextNode(token.name);
                         const symbolText = document.createTextNode(token.symbol);
-
-                        const balanceBN = await getRealTokenBalance(address, token.contractAddress);
                         const tokenDecimal = parseInt(token.decimals);
-                        const adjustedBalance = ethers.utils.formatUnits(balanceBN, tokenDecimal);
-                        const balanceText = document.createTextNode(adjustedBalance);
+                        const realBalance = await getRealTokenBalance(address, token.contractAddress, tokenDecimal);
+                        const balanceText = document.createTextNode(realBalance);
                         const contractAddressText = document.createTextNode(`${token.contractAddress.slice(0, 5)}....${token.contractAddress.slice(-5)}`);
                         contractAddressCell.setAttribute("data-full-contract-address", token.contractAddress);
 
